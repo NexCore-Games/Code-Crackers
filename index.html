@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Cracker - NexCore Games </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+
+        #game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            width: 80%;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff7f50;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #ff4500;
+        }
+
+        #hint, #feedback {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+
+        #timer {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        #leaderboard {
+            margin-top: 30px;
+        }
+
+        #scores {
+            padding: 0;
+            list-style: none;
+        }
+
+        #scores li {
+            background: rgba(255, 255, 255, 0.2);
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .dark-mode {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1> Code Cracker - NexCore Games </h1>
+        <p>Guess the 4-digit code!</p>
+        <input type="text" id="guess" maxlength="4" placeholder="Enter 4 digits">
+        <button onclick="checkGuess()">Submit</button>
+        <p id="feedback"></p>
+        <p id="hint"></p>
+        <p id="timer">Time Taken: 0 seconds</p>
+        <button onclick="toggleSound()">Toggle Sound</button>
+        <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        <audio id="success-sound" src="Sounds/correct.mp3"></audio>
+        <audio id="error-sound" src="Sounds/incorrect.mp3"></audio>
+        <audio id="background-music" src="Sounds/background.mp3" loop></audio>
+        <div id="leaderboard">
+            <h2>Leaderboard</h2>
+            <ul id="scores"></ul>
+            <button onclick="clearLeaderboard()">Clear Leaderboard</button>
+        </div>
+    </div>
+
+    <script>
+        let code = generateCode();
+        let attempts = 0;
+        let timer = 0;
+        let timerInterval;
+        const leaderboard = [];
+
+        function generateCode() {
+            return String(Math.floor(1000 + Math.random() * 9000));
+        }
+
+        function checkGuess() {
+            const guess = document.getElementById("guess").value;
+            const feedback = document.getElementById("feedback");
+            const hint = document.getElementById("hint");
+            attempts++;
+
+            if (guess === code) {
+                document.getElementById("success-sound").play();
+                clearInterval(timerInterval);
+                feedback.textContent = "Correct! You've cracked the code!";
+                leaderboard.push({ time: timer, attempts });
+                updateLeaderboard();
+            } else {
+                document.getElementById("error-sound").play();
+                feedback.textContent = "Incorrect. Try again!";
+
+                if (attempts >= 3) {
+                    hint.textContent = generateHint(guess);
+                }
+            }
+        }
+
+        function generateHint(guess) {
+            let hint = "";
+            for (let i = 0; i < code.length; i++) {
+                if (guess[i] === code[i]) {
+                    hint += "✔️ ";
+                } else {
+                    hint += "X ";
+                }
+            }
+            return hint;
+        }
+
+        function updateLeaderboard() {
+            const scoresList = document.getElementById("scores");
+            scoresList.innerHTML = "";
+            leaderboard.sort((a, b) => a.time - b.time);
+            leaderboard.forEach((entry, index) => {
+                const li = document.createElement("li");
+                li.textContent = `#${index + 1}: ${entry.time}s (${entry.attempts} attempts)`;
+                scoresList.appendChild(li);
+            });
+        }
+
+        function clearLeaderboard() {
+            leaderboard.length = 0;
+            updateLeaderboard();
+        }
+
+        function toggleSound() {
+            const music = document.getElementById("background-music");
+            if (music.paused) {
+                music.play();
+            } else {
+                music.pause();
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timer++;
+                document.getElementById("timer").textContent = `Time Taken: ${timer} seconds`;
+            }, 1000);
+        }
+
+        startTimer();
+    </script>
+</body>
+</html>
